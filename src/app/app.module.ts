@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
 import { AppComponent } from './app.component';
+import { MultiLineChartComponent } from './multi-line-chart/multi-line-chart.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    MultiLineChartComponent
   ],
   imports: [
     BrowserModule,

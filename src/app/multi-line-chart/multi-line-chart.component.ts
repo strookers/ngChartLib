@@ -303,7 +303,7 @@ export class MultiLineChartComponent implements OnInit {
   }
 
   populate(){
-    
+
     let series = this.svg.selectAll(".series")
         .data(this.seriesData)
       .enter().append("g")

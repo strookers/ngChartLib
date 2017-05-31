@@ -11,8 +11,8 @@ export class MultiLineChartComponent implements OnInit {
   private margin;
   private width;
   private height;
-  private x;
-  private y;
+  private xScale;
+  private yScale;
   private xAxis;
   private yAxis;
   private line;
@@ -220,6 +220,9 @@ export class MultiLineChartComponent implements OnInit {
         }
       ];
     this.init();
+    this.populate();
+    this.drawXAxis();
+    this.drawYAxis();
     this.drawLegend();
   }
 
@@ -228,26 +231,25 @@ export class MultiLineChartComponent implements OnInit {
     this.width  = 1000 - this.margin.left - this.margin.right,
     this.height = 500  - this.margin.top  - this.margin.bottom;
 
-    this.x = d3.scaleBand()
+    this.xScale = d3.scaleBand()
         .rangeRound([0, this.width])
         .padding(0.1);
 
-    this.y = d3.scaleLinear()
+    this.yScale = d3.scaleLinear()
         .rangeRound([this.height, 0]);
 
-    this.xAxis = d3.axisBottom(this.x)
-        .scale(this.x);
+    this.xAxis = d3.axisBottom(this.xScale);
 
-    this.yAxis = d3.axisLeft(this.y)
-        .scale(this.y);
+    this.yAxis = d3.axisLeft(this.yScale);
 
     this.line = d3.line()
         .curve(d3.curveCardinal)
-        .x((d:any) =>  this.x(d.label) + this.x.bandwidth() / 2 )
-        .y((d:any) =>  this.y(d.value) );
+        .x((d:any) =>  this.xScale(d.label) + this.xScale.bandwidth() / 2 )
+        .y((d:any) =>  this.yScale(d.value) );
 
-    this.color = d3.scaleOrdinal()
-        .range(["#001c9c","#101b4d","#475003","#9c8305","#d3c47c"]);
+    // this.color = d3.scaleOrdinal()
+    //     .range(["#001c9c","#101b4d","#475003","#9c8305","#d3c47c"]);
+    this.color = d3.scaleOrdinal(d3.schemeCategory10);
 
     this.svg = d3.select("body").append("svg")
         .attr("width",  this.width  + this.margin.left + this.margin.right)
@@ -268,8 +270,8 @@ export class MultiLineChartComponent implements OnInit {
       };
     });
 
-    this.x.domain(this.data.map((d) => d.quarter));
-    this.y.domain([
+    this.xScale.domain(this.data.map((d) => d.quarter));
+    this.yScale.domain([
       d3.min(this.seriesData, (c:any) => { 
         return d3.min(c.values, (d:any) => d.value);
       }),
@@ -277,14 +279,19 @@ export class MultiLineChartComponent implements OnInit {
         return d3.max(c.values, (d:any) => d.value);
       })
     ]);
+        
+  }
 
-    this.svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + this.height + ")")
-        .call(this.xAxis);
+  drawXAxis(){
+    this.xAxis = this.svg.append('g')
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + this.height + ")")
+      .call(this.xAxis);
+  }
 
-    this.svg.append("g")
-        .attr("class", "y axis")
+  drawYAxis(){
+    this.yAxis = this.svg.append('g')
+      .attr("class", "y axis")
         .call(this.yAxis)
       .append("text")
         .attr("transform", "rotate(-90)")
@@ -293,7 +300,10 @@ export class MultiLineChartComponent implements OnInit {
         .style("text-anchor", "end")
         .style("fill", "black")
         .text("Number of Rounds");
+  }
 
+  populate(){
+    
     let series = this.svg.selectAll(".series")
         .data(this.seriesData)
       .enter().append("g")
@@ -310,22 +320,12 @@ export class MultiLineChartComponent implements OnInit {
       .data((d) => d.values)
       .enter().append("circle")
         .attr("class", "point")
-        .attr("cx", (d) => this.x(d.label) + this.x.bandwidth()/2)
-        .attr("cy", (d) => this.y(d.value))
+        .attr("cx", (d) => this.xScale(d.label) + this.xScale.bandwidth()/2)
+        .attr("cy", (d) => this.yScale(d.value))
         .attr("r", "3px")
         .style("fill", (d) => this.color(d.name))
         .style("stroke", "grey")
         .style("stroke-width", "2px");
-
-        
-  }
-
-  drawXAxis(){
-
-  }
-
-  drawYAxis(){
-
   }
 
   drawLegend(){
@@ -348,10 +348,6 @@ export class MultiLineChartComponent implements OnInit {
             .attr("dy", ".35em")
             .style("text-anchor", "end")
             .text((d) => d);
-  }
-
-  populate(){
-
   }
 
 }
